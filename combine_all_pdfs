@@ -1,0 +1,68 @@
+#!/bin/bash
+
+ERROR_TEXT="\t\t!!!ERROR!!!\n"
+SUCCESS_TEXT="\t\tSUCCESS\n"
+DEBUG_IND=0
+
+printDebug(){
+  if [ $DEBUG_IND -eq 1 ]
+  then
+    echo -e $1
+  fi
+}
+
+# check the appropriate number of parameters were provided
+if test $# -lt 2
+then
+	echo -e "$ERROR_TEXT\tnot enough arguments"
+	exit 1
+fi
+
+printDebug "\t\tparam 1: $1"
+
+# check that directory exists
+test -d $1
+dir_exists=$?
+
+if [ $DEBUG_IND -eq 1 ]
+then
+  echo "dir_exists result: $dir_exists"
+fi
+
+if [ $dir_exists -ne 0 ]
+then
+  echo -e "$ERROR_TEXT\tdirectory $1 does not exist"
+  exit 1
+fi
+
+printDebug "Combining all .pdf files in directory $1"
+
+cd $1 
+
+# see if the provided file name already exists
+test -a $2 
+file_exists=$?
+
+printDebug "file exists result: $file_exists"
+
+if [ $file_exists -eq 0 ]
+then
+  echo -e "$ERROR_TEXT\tfile $2 already exists in $1"
+  echo -e "\t\tremoving $2"
+  rm "$2"
+fi
+
+# do the work
+pdfunite *.pdf $2
+
+# was it successful?
+test -a $2 
+file_exists=$?
+
+if [ $file_exists -ne 0 ]
+then
+  echo -e"$ERROR_TEXT\tunable to create file $2"
+  exit 1
+else
+  echo -e "$SUCCESS_TEXT\tfile $2 created in direcotry $1"
+fi
